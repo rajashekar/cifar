@@ -26,7 +26,8 @@ export INSTANCE_NAME="dl-test-automation"
 gcloud compute ssh \
 --project wmt-sams-fe-eng \
 --internal-ip \
---zone $ZONE
+--zone $ZONE \
+$INSTANCE_NAME
 ```
 
 ## Opening Jupyter lab from above instance
