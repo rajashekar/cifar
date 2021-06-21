@@ -39,7 +39,7 @@ Go to localhost:8080 to get Jupyter lab
 [model_cifar.pt](model_cifar.pt) is saved model trained from [cifar.ipynb](cifar.ipynb) <br>
 [app.py](app.py) will load model_cifar.pt and will provide prediction on given images. 
 
-## To start flash server
+## To start flask server for inference
 Use base environment
 ```
 conda activate base
