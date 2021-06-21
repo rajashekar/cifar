@@ -19,6 +19,10 @@ gcloud compute instances create $INSTANCE_NAME \
 
 ## To ssh to above google instance
 ```
+export IMAGE_FAMILY="pytorch-latest-gpu"
+export ZONE="us-west1-b"
+export INSTANCE_NAME="dl-test-automation"
+
 gcloud compute ssh \
 --project wmt-sams-fe-eng \
 --internal-ip \
