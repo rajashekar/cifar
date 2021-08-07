@@ -16,23 +16,23 @@ import GPUtil
 
 app = Flask(__name__)
 # specify the image classes
-classes = ['airplane', 'automobile', 'bird', 'cat', 'deer',
-           'dog', 'frog', 'horse', 'ship', 'truck']
+classes = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
 
 
 # check if CUDA is available
 train_on_gpu = torch.cuda.is_available()
 if not train_on_gpu:
-    print('CUDA is not available.  Inference on CPU ...')
+    print("CUDA is not available.  Inference on CPU ...")
 else:
-    print('CUDA is available!  Inference on GPU ...')
-    
+    print("CUDA is available!  Inference on GPU ...")
+
 
 # check before how much GPU was utilized
 def display_gpu_memory():
     gc.collect()
     torch.cuda.empty_cache()
     GPUtil.showUtilization()
+
 
 # load model
 # define the CNN architecture
@@ -71,6 +71,7 @@ class Net(nn.Module):
         x = self.fc2(x)
         return x
 
+
 # create a complete CNN
 display_gpu_memory()
 print("Creating Nueral Network")
@@ -78,26 +79,29 @@ model = Net()
 print("Display Nueral Network")
 print(model)
 
+
 # move tensors to GPU if CUDA is available
 if train_on_gpu:
     model.cuda()
 
-device = torch.device("cuda")
-print(f"loading trained model on {device}")    
-model.load_state_dict(torch.load('model_cifar.pt'))
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print(f"loading trained model on {device}")
+model.load_state_dict(torch.load("pretrained/model_cifar.pt", map_location=device))
 model.to(device)
 display_gpu_memory()
 print("Put model in Evaluation mode")
 model.eval()
 
-    
+
 def transform_image(image_bytes):
-    my_transforms = transforms.Compose([
-        transforms.Resize(32),
-        transforms.CenterCrop(32),
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-    ])
+    my_transforms = transforms.Compose(
+        [
+            transforms.Resize(32),
+            transforms.CenterCrop(32),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        ]
+    )
     image = Image.open(io.BytesIO(image_bytes))
     return my_transforms(image).unsqueeze(0)
 
@@ -115,14 +119,14 @@ def get_prediction(image_bytes):
     return classes[predicted_idx]
 
 
-@app.route('/predict', methods=['POST'])
+@app.route("/predict", methods=["POST"])
 def predict():
-    if request.method == 'POST':
-        file = request.files['file']
+    if request.method == "POST":
+        file = request.files["file"]
         img_bytes = file.read()
         class_name = get_prediction(image_bytes=img_bytes)
-        return jsonify({'class_name': class_name})
+        return jsonify({"class_name": class_name})
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run()

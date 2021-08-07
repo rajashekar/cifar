@@ -41,8 +41,8 @@ $INSTANCE_NAME -- -L 8080:localhost:8080
 Go to localhost:8080 to get Jupyter lab 
 
 ## To run Cifar example
-[model_cifar.pt](model_cifar.pt) is saved model trained from [cifar.ipynb](cifar.ipynb) <br>
-[app.py](app.py) will load model_cifar.pt and will provide prediction on given images. 
+[model_cifar.pt](pretrained/model_cifar.pt) is saved model trained from [cifar.ipynb](notebooks/cifar.ipynb) <br>
+[app.py](inference/app.py) will load model_cifar.pt and will provide prediction on given images. 
 
 ## To start flask server for inference
 Use base environment
