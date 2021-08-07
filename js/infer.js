@@ -7,8 +7,9 @@ async function runModel() {
     imageSize=32
 
     // load image
+    image_url = document.getElementById('imageSource').src
     const imageLoader = new ImageLoader(imageSize, imageSize);
-    const imageData = await imageLoader.getImageData('images/cat_2.jpeg');
+    const imageData = await imageLoader.getImageData(image_url);
     console.log(imageData)
 
     // Preprocess the image data to match input dimension requirement, which is 1*3*224*224.
@@ -32,7 +33,10 @@ function preprocess(data, width, height) {
   const dataProcessed = ndarray(new Float32Array(width * height * 3), [1, 3, height, width]);
 
   // Normalize 
+  // The pixel values are normalized between 0 and 1 by dividing 255. 
   ndarray.ops.divseq(dataFromImage, 255);
+  // RGB channels are normalized with the mean values [0.5, 0.5, 0.5] 
+  // and the standard deviations [0.5, 0.5, 0.5].
   ndarray.ops.subseq(dataFromImage.pick(0, null, null), 0.5);
   ndarray.ops.divseq(dataFromImage.pick(0, null, null), 0.5);
   ndarray.ops.subseq(dataFromImage.pick(1, null, null), 0.5);
@@ -63,7 +67,6 @@ function infernence(data) {
 }
 
 runModel()
-
 
 /*
 let fileTag = document.getElementById("filetag"),
