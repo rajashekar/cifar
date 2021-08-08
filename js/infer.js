@@ -1,10 +1,12 @@
 
+imageSize=32
+channels=3
+
 // Load image.
 async function runModel() {
     // create onnx session
     const session = new onnx.InferenceSession();
     await session.loadModel("pretrained/onnx_model.onnx");
-    imageSize=32
 
     // load image
     image_url = document.getElementById('imageSource').src
@@ -12,13 +14,13 @@ async function runModel() {
     const imageData = await imageLoader.getImageData(image_url);
     console.log(imageData)
 
-    // Preprocess the image data to match input dimension requirement, which is 1*3*224*224.
+    // Preprocess the image data to match input dimension requirement, which is 1*3*32*32.
     const width = imageSize;
     const height = imageSize;
     const preprocessedData = preprocess(imageData.data, width, height);
 
     console.log(preprocessedData)
-    const inputTensor = new onnx.Tensor(preprocessedData, 'float32', [1, 3, width, height]);
+    const inputTensor = new onnx.Tensor(preprocessedData, 'float32', [1, channels, width, height]);
 
     // Run model with Tensor inputs and get the result.
     const outputMap = await session.run([inputTensor]);
@@ -29,25 +31,28 @@ async function runModel() {
 }
 
 function preprocess(data, width, height) {
+  // ndarray gives channels as RGBA, so you need to use 4
   const dataFromImage = ndarray(new Float32Array(data), [width, height, 4]);
-  const dataProcessed = ndarray(new Float32Array(width * height * 3), [1, 3, height, width]);
-
   // Normalize 
   // The pixel values are normalized between 0 and 1 by dividing 255. 
   ndarray.ops.divseq(dataFromImage, 255);
   // RGB channels are normalized with the mean values [0.5, 0.5, 0.5] 
   // and the standard deviations [0.5, 0.5, 0.5].
-  ndarray.ops.subseq(dataFromImage.pick(0, null, null), 0.5);
-  ndarray.ops.divseq(dataFromImage.pick(0, null, null), 0.5);
-  ndarray.ops.subseq(dataFromImage.pick(1, null, null), 0.5);
-  ndarray.ops.divseq(dataFromImage.pick(1, null, null), 0.5);
-  ndarray.ops.subseq(dataFromImage.pick(2, null, null), 0.5);
-  ndarray.ops.divseq(dataFromImage.pick(2, null, null), 0.5);
+  ndarray.ops.subseq(dataFromImage.pick(null, null, 0), 0.5);
+  ndarray.ops.divseq(dataFromImage.pick(null, null, 0), 0.5);
 
-  // Realign imageData from [224*224*4] to the correct dimension [1*3*224*224].
-  ndarray.ops.assign(dataProcessed.pick(0, 0, null, null), dataFromImage.pick(null, null, 2));
+  ndarray.ops.subseq(dataFromImage.pick(null, null, 1), 0.5);
+  ndarray.ops.divseq(dataFromImage.pick(null, null, 1), 0.5);
+
+  ndarray.ops.subseq(dataFromImage.pick(null, null, 2), 0.5);
+  ndarray.ops.divseq(dataFromImage.pick(null, null, 2), 0.5);
+
+  // create new nd array of size [1*3*32*32]
+  const dataProcessed = ndarray(new Float32Array(width * height * channels), [1, channels, height, width]);
+  // Realign imageData from [32*32*3] to the correct dimension [1*3*32*32].
+  ndarray.ops.assign(dataProcessed.pick(0, 0, null, null), dataFromImage.pick(null, null, 0));
   ndarray.ops.assign(dataProcessed.pick(0, 1, null, null), dataFromImage.pick(null, null, 1));
-  ndarray.ops.assign(dataProcessed.pick(0, 2, null, null), dataFromImage.pick(null, null, 0));
+  ndarray.ops.assign(dataProcessed.pick(0, 2, null, null), dataFromImage.pick(null, null, 2));
 
   return dataProcessed.data;
 }
